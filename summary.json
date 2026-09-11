@@ -1,0 +1,129 @@
+{
+  "best_technique_by_tier": {
+    "Vague": "Expert Prompt",
+    "Moderate": "Expert Prompt",
+    "Well-Structured": "Structured Prompt"
+  },
+  "consolidated_by_tier": {
+    "Vague": {
+      "best_technique": "Expert Prompt",
+      "score": {
+        "original": 37,
+        "optimized": 85.83,
+        "delta": 48.83
+      },
+      "ambiguity": {
+        "original": 4.42,
+        "optimized": 4.67,
+        "delta": 0.26
+      },
+      "hallucination_risk": {
+        "original": 6.76,
+        "optimized": 2.2,
+        "delta": -4.56
+      },
+      "complexity": {
+        "original": 3.21,
+        "optimized": 7.01,
+        "delta": 3.79
+      },
+      "token_usage": {
+        "original": 4.67,
+        "optimized": 112.67,
+        "delta": 108.0
+      }
+    },
+    "Moderate": {
+      "best_technique": "Expert Prompt",
+      "score": {
+        "original": 40.17,
+        "optimized": 94.83,
+        "delta": 54.67
+      },
+      "ambiguity": {
+        "original": 5.0,
+        "optimized": 9.34,
+        "delta": 4.34
+      },
+      "hallucination_risk": {
+        "original": 5.32,
+        "optimized": 0.58,
+        "delta": -4.74
+      },
+      "complexity": {
+        "original": 4.55,
+        "optimized": 6.51,
+        "delta": 1.96
+      },
+      "token_usage": {
+        "original": 11.17,
+        "optimized": 118.17,
+        "delta": 107.0
+      }
+    },
+    "Well-Structured": {
+      "best_technique": "Structured Prompt",
+      "score": {
+        "original": 65.83,
+        "optimized": 91,
+        "delta": 25.17
+      },
+      "ambiguity": {
+        "original": 5.0,
+        "optimized": 8.94,
+        "delta": 3.94
+      },
+      "hallucination_risk": {
+        "original": 3.23,
+        "optimized": 0.81,
+        "delta": -2.42
+      },
+      "complexity": {
+        "original": 3.96,
+        "optimized": 5.02,
+        "delta": 1.05
+      },
+      "token_usage": {
+        "original": 44.17,
+        "optimized": 132.17,
+        "delta": 88.0
+      }
+    }
+  },
+  "llm_eval": {
+    "n": 3,
+    "relevance": {
+      "original": 10,
+      "optimized": 10,
+      "delta": 0
+    },
+    "completeness": {
+      "original": 9,
+      "optimized": 9,
+      "delta": 0
+    },
+    "clarity": {
+      "original": 9.33,
+      "optimized": 9.33,
+      "delta": 0.0
+    },
+    "format_adherence": {
+      "original": 10,
+      "optimized": 10,
+      "delta": 0
+    },
+    "unsupported_claims_count": {
+      "original": 0,
+      "optimized": 0,
+      "delta": 0
+    },
+    "word_count": {
+      "original": 915.3,
+      "optimized": 176.7
+    },
+    "word_limit_compliance": {
+      "optimized_within_limit": 3,
+      "optimized_total_constrained": 3
+    }
+  }
+}

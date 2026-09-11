@@ -1,0 +1,8 @@
+# After installing, also run: python -m spacy download en_core_web_sm
+streamlit>=1.30
+transformers>=4.35
+torch>=2.0
+spacy>=3.7
+textstat>=0.7
+tiktoken>=0.7
+google-genai>=0.3
