@@ -70,12 +70,22 @@ CRITERIA_HYPOTHESES = {
 def _get_classifier():
     """
     Lazily builds the zero-shot-classification pipeline on first use.
-    Cached (lru_cache) so the ~260MB model is loaded into memory once per
+    Cached (lru_cache) so the ~370MB model is loaded into memory once per
     process, not on every call. Importing this module never triggers a
     download by itself -- only calling semantic_scores() does.
+
+    Uses the GPU when a CUDA-capable torch build detects one (dramatically
+    faster for batch workloads like benchmark.py), and falls back to CPU
+    automatically otherwise -- so this stays portable for anyone running the
+    app without a GPU or with the CPU-only torch wheel.
     """
     from transformers import pipeline
-    return pipeline("zero-shot-classification", model=MODEL_NAME)
+    try:
+        import torch
+        device = 0 if torch.cuda.is_available() else -1
+    except Exception:
+        device = -1
+    return pipeline("zero-shot-classification", model=MODEL_NAME, device=device)
 
 
 def semantic_backend_available() -> bool:

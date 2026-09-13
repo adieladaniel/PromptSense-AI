@@ -14,9 +14,12 @@ invented — every figure traces back to `results.json`, `summary.json`, or
   prompt-engineered instructions.
 - **Assessment:** each prompt (and each of 7 optimized rewrites of it) is scored
   by the hybrid Prompt Quality Assessment module — a 50/50 blend of rule-based
-  pattern matching and DistilBERT-MNLI zero-shot semantic scoring — on 8 core
-  criteria (clarity, context, role, audience, constraints, output format,
-  specificity, ambiguity), averaged into a 0–100 overall score.
+  pattern matching and DeBERTa-v3 (a BERT-family transformer) zero-shot
+  semantic scoring — on 8 core criteria (clarity, context, role, audience,
+  constraints, output format, specificity, ambiguity), averaged into a 0–100
+  overall score. An earlier revision used DistilBERT-MNLI, which turned out
+  badly miscalibrated (see `README_SEMANTIC_UPGRADE.md` for the empirical
+  before/after); all numbers below are from the corrected DeBERTa-v3 model.
 - **Preprocessing:** real tokenization, sentence segmentation, POS/dependency
   parsing (spaCy `en_core_web_sm`) and Flesch-Kincaid readability (`textstat`)
   feed the ambiguity and complexity metrics.
@@ -36,18 +39,22 @@ invented — every figure traces back to `results.json`, `summary.json`, or
 
 | Tier | Original | Standard | Role-Based | Chain-of-Thought | Few-Shot | Structured | Zero-Shot | Expert |
 |---|---|---|---|---|---|---|---|---|
-| Vague | 37.0 | 37.0 | 73.7 | 41.8 | 44.2 | 75.7 | 51.3 | **85.8** |
-| Moderate | 40.2 | 40.2 | 81.7 | 41.2 | 57.0 | 82.2 | 61.7 | **94.8** |
-| Well-Structured | 65.8 | 65.8 | 76.7 | 68.5 | 63.5 | **91.0** | 65.5 | 85.2 |
+| Vague | 24.8 | 24.8 | 73.7 | 70.8 | 71.3 | 60.0 | 50.5 | **77.5** |
+| Moderate | 36.8 | 36.8 | 77.2 | 73.7 | 72.8 | 66.0 | 56.2 | **81.5** |
+| Well-Structured | 79.2 | 79.2 | 83.8 | 79.0 | 81.8 | 76.5 | 70.5 | **84.3** |
 
-**Observation:** "Expert Prompt" and "Structured Prompt" consistently produce
-the largest score gains; "Chain-of-Thought" and "Few-Shot" (in their current
-template form) add reasoning/example scaffolding but less of the
-context/audience/constraint/format boilerplate the assessment rewards, so
-they score lower. This is a genuine, reportable finding — not every
-prompting technique is equally effective at raising the assessed quality
-score, which nuances the paper's blanket claim that optimization "improves"
-prompts.
+**Observation:** under the corrected hybrid scorer, **Expert Prompt is now the
+single best-scoring technique across all three tiers** — a cleaner, more
+reportable finding than the earlier (miscalibrated-model) result, which had
+inconsistently split the win between "Expert" and "Structured." Chain-of-Thought
+and Few-Shot now score much closer to Role-Based/Structured than before,
+since the semantic layer credits their reasoning/example scaffolding as
+satisfying clarity and specificity even without explicit role/context
+boilerplate. Zero-Shot consistently scores lowest among the optimized
+techniques — it deliberately strips the assessment-rewarded boilerplate down
+to a bare instruction, so this is expected, not a bug. This remains a
+genuine, reportable finding: not every prompting technique is equally
+effective at raising the assessed quality score.
 
 ## 3. Table 2 — Original vs. the Single Best-Scoring Technique per Tier
 
@@ -57,17 +64,26 @@ independently per metric, which would be an incoherent comparison.
 
 | Tier | Best Technique | Score | Ambiguity (0–10, higher=clearer) | Hallucination Risk (0–10, lower=better) | Complexity (0–10, informational) | Token Usage |
 |---|---|---|---|---|---|---|
-| Vague | Expert Prompt | 37.0 → 85.8 | 4.42 → 4.67 | 6.76 → 2.20 | 3.21 → 7.01 | 4.7 → 112.7 |
-| Moderate | Expert Prompt | 40.2 → 94.8 | 5.00 → 9.34 | 5.32 → 0.58 | 4.55 → 6.51 | 11.2 → 118.2 |
-| Well-Structured | Structured Prompt | 65.8 → 91.0 | 5.00 → 8.94 | 3.23 → 0.81 | 3.96 → 5.02 | 44.2 → 132.2 |
+| Vague | Expert Prompt | 24.8 → 77.5 | 4.45 → 5.82 | 6.70 → 2.28 | 3.21 → 7.01 | 4.7 → 112.7 |
+| Moderate | Expert Prompt | 36.8 → 81.5 | 5.28 → 6.56 | 4.72 → 1.91 | 4.55 → 6.57 | 11.2 → 111.0 |
+| Well-Structured | Expert Prompt | 79.2 → 84.3 | 5.90 → 5.62 | 1.95 → 1.92 | 3.96 → 5.02 | 44.2 → 97.0 |
 
 **Observations:**
 - Hallucination risk (heuristic proxy — see limitations) drops sharply after
-  optimization in every tier, driven by the added context/constraints/specificity.
-- Complexity and token usage both rise substantially — a real, expected cost
-  of optimization (longer, more structured prompts consume more tokens and
-  read at a higher grade level). This is worth reporting honestly rather than
-  presenting optimization as a free win.
+  optimization for Vague and Moderate tiers; the Well-Structured tier barely
+  moves (1.95 → 1.92) because the original prompt was already well-grounded
+  before optimization — there was little risk left to remove.
+- Complexity and token usage both rise substantially for Vague/Moderate — a
+  real, expected cost of optimization (longer, more structured prompts
+  consume more tokens and read at a higher grade level). The Well-Structured
+  tier's token increase is smaller in relative terms since its original
+  prompt was already fairly long.
+- Ambiguity actually *drops slightly* after optimization in the
+  Well-Structured tier (5.90 → 5.62) — a genuinely counterintuitive result
+  worth flagging rather than smoothing over: the Expert Prompt template's
+  extra scaffolding text apparently reads as marginally less semantically
+  precise to the assessment even though it adds real content, unlike the
+  clear ambiguity improvement seen in the other two tiers.
 
 ## 4. Table 3 — Real LLM (Gemini) Response Quality: Original vs. Optimized Prompt
 
@@ -144,6 +160,15 @@ requested 250-word limit.
   of leniency bias in LLM-as-judge setups; the objective, code-computed
   word-count compliance check was added specifically to have at least one
   non-LLM-judged, verifiable metric.
-- **"Best technique" varies by tier** (Expert Prompt for Vague/Moderate,
-  Structured Prompt for Well-Structured) — the paper should not claim one
-  single technique is universally best.
+- **"Best technique" is a property of the assessment module's current
+  scoring, not an absolute truth about prompting.** Expert Prompt currently
+  wins across all three tiers, but this is the model-scored result of one
+  specific hybrid scorer (rule-based + DeBERTa-v3); it shifted meaningfully
+  when the semantic model was corrected (see §1), so the paper should frame
+  it as "best according to this assessment methodology," not a universal
+  claim about prompt-engineering technique quality.
+- **Reproducibility note:** the semantic scorer runs ~50–100x faster on a
+  CUDA-capable GPU than on CPU (verified: ~0.12s/call on an RTX 3050 vs.
+  several seconds/call on CPU). `benchmark.py`'s 144 assessment calls take
+  well under a minute on GPU vs. ~25–30 minutes on CPU — worth noting if
+  reproducing this table on different hardware.
